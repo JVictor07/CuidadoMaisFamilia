@@ -5,6 +5,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import '../config/firebase';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -14,7 +16,12 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
+    'Onest-Regular': require('../assets/fonts/Onest-Regular.ttf'),
+    'Onest-Medium': require('../assets/fonts/Onest-Medium.ttf'),
+    'Onest-SemiBold': require('../assets/fonts/Onest-SemiBold.ttf'),
+    'Onest-Bold': require('../assets/fonts/Onest-Bold.ttf'),
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    ...FontAwesome.font,
   });
 
   useEffect(() => {
