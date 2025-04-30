@@ -2,17 +2,21 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
+  ActivityIndicator,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useState, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { FormInput } from "@/components/ui/FormInput";
 import { FormSelect } from "@/components/ui/FormSelect";
 import { ImagePicker as CustomImagePicker } from "@/components/ui/ImagePicker";
+import { CustomAlert } from "@/components/ui/CustomAlert";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { specialties } from "@/data/specialties";
@@ -20,7 +24,9 @@ import { formatPhoneNumber } from "@/utils/formatters";
 import { Professional } from "@/data/professionals";
 import {
   addProfessional,
+  updateProfessional,
   uploadProfessionalImage,
+  getProfessionalById,
 } from "@/services/professionalService";
 
 interface FormData {
@@ -29,6 +35,7 @@ interface FormData {
   specialty: { id: string; name: string } | undefined;
   whatsapp: string;
   imageUrl: string;
+  id?: string; // Optional id for editing
 }
 
 interface FormErrors {
@@ -41,7 +48,10 @@ interface FormErrors {
 
 export default function RegisterProfessionalScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const colorScheme = useColorScheme();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const navigation = useNavigation();
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -53,11 +63,67 @@ export default function RegisterProfessionalScreen() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Parse professional data from params if available
+  useEffect(() => {
+    const professionalId = params.id;
+    if (professionalId && typeof professionalId === 'string') {
+      // Set loading state if needed
+      setIsLoading(true);
+      
+      // Fetch professional data by ID
+      getProfessionalById(professionalId)
+        .then(professionalData => {
+          if (professionalData) {
+            // Find the specialty object that matches the professional's specialty
+            const specialtyObj = specialties.find(s => s.name === professionalData.specialty);
+            
+            setFormData({
+              id: professionalData.id,
+              name: professionalData.name,
+              address: professionalData.address,
+              specialty: specialtyObj,
+              whatsapp: professionalData.whatsapp || "",
+              imageUrl: professionalData.imageUrl,
+            });
+            
+            setIsEditMode(true);
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching professional data:", error);
+          CustomAlert.alert(
+            "Erro",
+            "Não foi possível carregar os dados do profissional.",
+            [{ text: "OK" }]
+          );
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, []);  // Empty dependency array - run only once on mount
+
+  // Update header title based on isEditMode
+  useEffect(() => {
+    navigation.setOptions({
+      title: isEditMode ? "Editar Profissional" : "Registrar Profissional",
+      headerLeft: () => (
+        <TouchableOpacity 
+          onPress={() => router.replace("/(tabs)/professionals")}
+          style={{ padding: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors[colorScheme ?? 'light'].text} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [isEditMode, navigation, router, colorScheme]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user types
-    if (errors[field]) {
+    if (field in errors && errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
@@ -79,7 +145,7 @@ export default function RegisterProfessionalScreen() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
-      Alert.alert(
+      CustomAlert.alert(
         "Permissão Negada",
         "Precisamos de permissão para acessar sua galeria de fotos."
       );
@@ -147,7 +213,7 @@ export default function RegisterProfessionalScreen() {
         }
 
         // Create the professional object
-        const newProfessional: Omit<Professional, "id"> = {
+        const professionalData: Omit<Professional, "id"> = {
           name: formData.name,
           address: formData.address,
           specialty: formData.specialty?.name,
@@ -155,12 +221,21 @@ export default function RegisterProfessionalScreen() {
           imageUrl: imageUrl,
         };
 
-        // Save to Firestore
-        const id = await addProfessional(newProfessional);
+        let successMessage = "";
+        
+        if (isEditMode && formData.id) {
+          // Update existing professional
+          await updateProfessional(formData.id, professionalData);
+          successMessage = `${formData.name} foi atualizado com sucesso!`;
+        } else {
+          // Add new professional
+          await addProfessional(professionalData);
+          successMessage = `${formData.name} foi cadastrado com sucesso!`;
+        }
 
-        Alert.alert(
-          "Profissional Cadastrado",
-          `${formData.name} foi cadastrado com sucesso!`,
+        CustomAlert.alert(
+          isEditMode ? "Profissional Atualizado" : "Profissional Cadastrado",
+          successMessage,
           [
             {
               text: "OK",
@@ -170,9 +245,9 @@ export default function RegisterProfessionalScreen() {
         );
       } catch (error) {
         console.error("Error saving professional:", error);
-        Alert.alert(
+        CustomAlert.alert(
           "Erro",
-          "Ocorreu um erro ao cadastrar o profissional. Tente novamente.",
+          `Ocorreu um erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} o profissional. Tente novamente.`,
           [{ text: "OK" }]
         );
       } finally {
@@ -183,62 +258,70 @@ export default function RegisterProfessionalScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView style={styles.content}>
-        <CustomImagePicker
-          label="Foto do Profissional"
-          imageUri={formData.imageUrl}
-          onSelectImage={handleImageSelect}
-          error={errors.imageUrl}
-        />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={Colors[colorScheme ?? 'light'].primaryBlue} />
+        </View>
+      ) : (
+        <ScrollView style={styles.content}>
+          <CustomImagePicker
+            label="Foto do Profissional"
+            imageUri={formData.imageUrl}
+            onSelectImage={handleImageSelect}
+            error={errors.imageUrl}
+          />
 
-        <FormInput
-          label="Nome"
-          placeholder="Nome completo do profissional"
-          value={formData.name}
-          onChangeText={(value) => handleInputChange("name", value)}
-          error={errors.name}
-        />
+          <FormInput
+            label="Nome"
+            placeholder="Nome completo do profissional"
+            value={formData.name}
+            onChangeText={(value) => handleInputChange("name", value)}
+            error={errors.name}
+          />
 
-        <FormInput
-          label="Endereço"
-          placeholder="Endereço completo"
-          value={formData.address}
-          onChangeText={(value) => handleInputChange("address", value)}
-          error={errors.address}
-        />
+          <FormInput
+            label="Endereço"
+            placeholder="Endereço completo"
+            value={formData.address}
+            onChangeText={(value) => handleInputChange("address", value)}
+            error={errors.address}
+          />
 
-        <FormSelect
-          label="Especialidade"
-          options={specialties}
-          selectedOption={formData.specialty}
-          onSelect={handleSpecialtySelect}
-          error={errors.specialty}
-        />
+          <FormSelect
+            label="Especialidade"
+            options={specialties}
+            selectedOption={formData.specialty}
+            onSelect={handleSpecialtySelect}
+            error={errors.specialty}
+          />
 
-        <FormInput
-          label="WhatsApp"
-          placeholder="(XX) 9XXXX-XXXX"
-          value={formData.whatsapp}
-          onChangeText={handleWhatsappChange}
-          keyboardType="phone-pad"
-          maxLength={16} // (XX) 9XXXX-XXXX = 16 characters
-          error={errors.whatsapp}
-        />
+          <FormInput
+            label="WhatsApp"
+            placeholder="(XX) 9XXXX-XXXX"
+            value={formData.whatsapp}
+            onChangeText={handleWhatsappChange}
+            keyboardType="phone-pad"
+            maxLength={16} // (XX) 9XXXX-XXXX = 16 characters
+            error={errors.whatsapp}
+          />
 
-        <TouchableOpacity
-          style={[
-            styles.submitButton,
-            { backgroundColor: Colors[colorScheme ?? "light"].primaryBlue },
-            isSubmitting && styles.disabledButton,
-          ]}
-          onPress={handleSubmit}
-          disabled={isSubmitting}
-        >
-          <ThemedText style={styles.submitButtonText}>
-            {isSubmitting ? "Cadastrando..." : "Cadastrar Profissional"}
-          </ThemedText>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              { backgroundColor: Colors[colorScheme ?? "light"].primaryBlue },
+              isSubmitting && styles.disabledButton,
+            ]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            <ThemedText style={styles.submitButtonText}>
+              {isSubmitting 
+                ? (isEditMode ? "Atualizando..." : "Cadastrando...") 
+                : (isEditMode ? "Atualizar Profissional" : "Cadastrar Profissional")}
+            </ThemedText>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
     </ThemedView>
   );
 }
@@ -256,9 +339,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 8,
-  },
-  title: {
-    marginLeft: 16,
   },
   content: {
     flex: 1,

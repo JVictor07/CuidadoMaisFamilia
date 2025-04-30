@@ -38,8 +38,11 @@ export default function ProfessionalsScreen() {
   };
 
   const handleProfessionalPress = (id: string, name: string) => {
-    Alert.alert(`Profissional selecionado`, `Você selecionou ${name}`);
-    // Aqui você pode navegar para a tela de detalhes do profissional
+    // Navigate to register-professional with just the professional ID
+    router.push({
+      pathname: '/register-professional',
+      params: { id }
+    });
   };
 
   const handleAddProfessional = () => {
