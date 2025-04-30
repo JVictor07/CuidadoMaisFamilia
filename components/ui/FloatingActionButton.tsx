@@ -8,12 +8,14 @@ interface FloatingActionButtonProps {
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
   style?: ViewStyle;
+  color?: string;
 }
 
 export function FloatingActionButton({ 
   onPress, 
   icon = 'add', 
-  style 
+  style,
+  color
 }: FloatingActionButtonProps) {
   const colorScheme = useColorScheme();
   
@@ -21,7 +23,7 @@ export function FloatingActionButton({
     <TouchableOpacity
       style={[
         styles.button,
-        { backgroundColor: Colors[colorScheme ?? 'light'].primaryBlue },
+        { backgroundColor: color || Colors[colorScheme ?? 'light'].primaryBlue },
         style
       ]}
       onPress={onPress}
