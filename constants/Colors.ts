@@ -7,6 +7,7 @@
 const primaryBlue = '#456EFD';
 const primaryBlack = '#050914';
 const primaryWhite = '#FFFFFF';
+const errorRed = '#FF3B30';
 
 // Derived colors
 const lightBackground = '#F1F2F4';
@@ -29,6 +30,7 @@ export const Colors = {
     primaryBlue: primaryBlue,
     primaryBlack: primaryBlack,
     primaryWhite: primaryWhite,
+    error: errorRed,
   },
   dark: {
     text: primaryWhite,
@@ -41,5 +43,6 @@ export const Colors = {
     primaryBlue: primaryBlue,
     primaryBlack: primaryBlack,
     primaryWhite: primaryWhite,
+    error: errorRed,
   },
 };
