@@ -11,10 +11,14 @@ import { Professional } from '@/data/professionals';
 import { getAllProfessionals } from '@/services/professionalService';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useAuth } from '@/contexts/AuthContext';
+import { CustomAlert } from '@/components/ui/CustomAlert';
+import { Linking } from 'react-native';
 
 export default function ProfessionalsScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { userRole, isAdmin } = useAuth();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,12 +41,45 @@ export default function ProfessionalsScreen() {
     }
   };
 
-  const handleProfessionalPress = (id: string, name: string) => {
-    // Navigate to register-professional with just the professional ID
-    router.push({
-      pathname: '/register-professional',
-      params: { id }
-    });
+  const handleProfessionalPress = (professional: Professional) => {
+    // Comportamento baseado na role do usuário
+    if (isAdmin) {
+      // Se for admin, redireciona para a tela de edição
+      router.push({
+        pathname: '/register-professional',
+        params: { id: professional.id }
+      });
+    } else {
+      // Se for usuário comum, abre o WhatsApp
+      if (professional.whatsapp) {
+        const whatsappNumber = professional.whatsapp.replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/55${whatsappNumber}`;
+        
+        Linking.canOpenURL(whatsappUrl)
+          .then(supported => {
+            if (supported) {
+              return Linking.openURL(whatsappUrl);
+            } else {
+              CustomAlert.alert(
+                'Erro',
+                'Não foi possível abrir o WhatsApp. Verifique se o aplicativo está instalado.'
+              );
+            }
+          })
+          .catch(err => {
+            console.error('Erro ao abrir WhatsApp:', err);
+            CustomAlert.alert(
+              'Erro',
+              'Ocorreu um erro ao tentar abrir o WhatsApp.'
+            );
+          });
+      } else {
+        CustomAlert.alert(
+          'Informação',
+          'Este profissional não possui WhatsApp cadastrado.'
+        );
+      }
+    }
   };
 
   const handleAddProfessional = () => {
@@ -102,8 +139,8 @@ export default function ProfessionalsScreen() {
             name={item.name}
             address={item.address}
             imageUrl={item.imageUrl}
-            specialty={item.specialty}
-            onPress={() => handleProfessionalPress(item.id, item.name)}
+            specialties={item.specialties}
+            onPress={() => handleProfessionalPress(item)}
           />
         )}
         scrollEnabled={false}
@@ -133,7 +170,8 @@ export default function ProfessionalsScreen() {
         {renderContent()}
       </ParallaxScrollView>
       
-      <FloatingActionButton onPress={handleAddProfessional} />
+      {/* Mostrar o botão de adicionar apenas para admins */}
+      {isAdmin && <FloatingActionButton onPress={handleAddProfessional} />}
     </View>
   );
 }

@@ -7,7 +7,7 @@ import {
   updateDoc, 
   deleteDoc, 
   query, 
-  where 
+  where
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
@@ -117,13 +117,13 @@ export const uploadProfessionalImage = async (uri: string, fileName: string): Pr
 };
 
 /**
- * Search professionals by specialty
+ * Search professionals by specialty in the specialties array
  */
 export const searchProfessionalsBySpecialty = async (specialty: string): Promise<Professional[]> => {
   try {
     const q = query(
       collection(db, COLLECTION_NAME), 
-      where("specialty", "==", specialty)
+      where("specialties", "array-contains", specialty)
     );
     
     const querySnapshot = await getDocs(q);
@@ -132,7 +132,7 @@ export const searchProfessionalsBySpecialty = async (specialty: string): Promise
       ...doc.data()
     } as Professional));
   } catch (error) {
-    console.error('Error searching professionals:', error);
+    console.error('Error searching professionals by specialties:', error);
     throw error;
   }
 };

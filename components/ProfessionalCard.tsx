@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Image, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Image, View, TouchableOpacity, ScrollView } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 import { Colors } from '@/constants/Colors';
@@ -9,11 +9,17 @@ interface ProfessionalCardProps {
   name: string;
   address: string;
   imageUrl: string;
-  specialty?: string;
+  specialties: string[];
   onPress?: () => void;
 }
 
-export function ProfessionalCard({ name, address, imageUrl, specialty, onPress }: ProfessionalCardProps) {
+export function ProfessionalCard({ 
+  name, 
+  address, 
+  imageUrl, 
+  specialties, 
+  onPress 
+}: ProfessionalCardProps) {
   const colorScheme = useColorScheme();
   const cardBgColor = { 
     backgroundColor: Colors[colorScheme ?? 'light'].cardBackground 
@@ -31,11 +37,22 @@ export function ProfessionalCard({ name, address, imageUrl, specialty, onPress }
         <Image source={{ uri: imageUrl }} style={styles.image} />
         <View style={styles.contentContainer}>
           <ThemedText type="defaultSemiBold" style={styles.name}>{name}</ThemedText>
-          {specialty && (
-            <View style={[styles.specialtyContainer, specialtyBgColor]}>
-              <ThemedText style={[styles.specialty, specialtyTextColor]}>{specialty}</ThemedText>
+          
+          {specialties.length > 0 && (
+            <View style={styles.specialtiesRow}>
+              {specialties.map((spec, index) => (
+                <View 
+                  key={index} 
+                  style={[styles.specialtyContainer, specialtyBgColor]}
+                >
+                  <ThemedText style={[styles.specialty, specialtyTextColor]}>
+                    {spec}
+                  </ThemedText>
+                </View>
+              ))}
             </View>
           )}
+          
           <ThemedText style={styles.address}>{address}</ThemedText>
         </View>
       </ThemedView>
@@ -65,12 +82,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontFamily: 'Onest-SemiBold',
   },
+  specialtiesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 6,
+  },
   specialtyContainer: {
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
-    marginBottom: 6,
+    marginRight: 4,
+    marginBottom: 4,
   },
   specialty: {
     fontSize: 12,

@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { FormInput } from "@/components/ui/FormInput";
-import { FormSelect } from "@/components/ui/FormSelect";
+import { FormMultiSelect } from "@/components/ui/FormMultiSelect";
 import { ImagePicker as CustomImagePicker } from "@/components/ui/ImagePicker";
 import { CustomAlert } from "@/components/ui/CustomAlert";
 import { Colors } from "@/constants/Colors";
@@ -32,7 +32,7 @@ import {
 interface FormData {
   name: string;
   address: string;
-  specialty: { id: string; name: string } | undefined;
+  specialties: { id: string; name: string }[];
   whatsapp: string;
   imageUrl: string;
   id?: string; // Optional id for editing
@@ -41,7 +41,7 @@ interface FormData {
 interface FormErrors {
   name?: string;
   address?: string;
-  specialty?: string;
+  specialties?: string;
   whatsapp?: string;
   imageUrl?: string;
 }
@@ -56,7 +56,7 @@ export default function RegisterProfessionalScreen() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     address: "",
-    specialty: undefined,
+    specialties: [],
     whatsapp: "",
     imageUrl: "",
   });
@@ -76,14 +76,22 @@ export default function RegisterProfessionalScreen() {
       getProfessionalById(professionalId)
         .then(professionalData => {
           if (professionalData) {
-            // Find the specialty object that matches the professional's specialty
-            const specialtyObj = specialties.find(s => s.name === professionalData.specialty);
+            // Converter especialidades de string para objetos
+            let specialtiesArray: { id: string; name: string }[] = [];
+            
+            if (professionalData.specialties && professionalData.specialties.length > 0) {
+              // Mapear as especialidades para objetos
+              specialtiesArray = professionalData.specialties.map(specialtyName => {
+                const specialtyObj = specialties.find(s => s.name === specialtyName);
+                return specialtyObj || { id: specialtyName, name: specialtyName };
+              });
+            }
             
             setFormData({
               id: professionalData.id,
               name: professionalData.name,
               address: professionalData.address,
-              specialty: specialtyObj,
+              specialties: specialtiesArray,
               whatsapp: professionalData.whatsapp || "",
               imageUrl: professionalData.imageUrl,
             });
@@ -133,10 +141,13 @@ export default function RegisterProfessionalScreen() {
     handleInputChange("whatsapp", formatted);
   };
 
-  const handleSpecialtySelect = (option: { id: string; name: string }) => {
-    setFormData((prev) => ({ ...prev, specialty: option }));
-    if (errors.specialty) {
-      setErrors((prev) => ({ ...prev, specialty: undefined }));
+  const handleSpecialtiesSelect = (options: { id: string; name: string }[]) => {
+    setFormData((prev) => ({ 
+      ...prev, 
+      specialties: options
+    }));
+    if (errors.specialties) {
+      setErrors((prev) => ({ ...prev, specialties: undefined }));
     }
   };
 
@@ -180,8 +191,8 @@ export default function RegisterProfessionalScreen() {
       newErrors.address = "Endereço é obrigatório";
     }
 
-    if (!formData.specialty) {
-      newErrors.specialty = "Especialidade é obrigatória";
+    if (!formData.specialties || formData.specialties.length === 0) {
+      newErrors.specialties = "Pelo menos uma especialidade é obrigatória";
     }
 
     if (!formData.whatsapp.trim()) {
@@ -212,11 +223,14 @@ export default function RegisterProfessionalScreen() {
           imageUrl = await uploadProfessionalImage(formData.imageUrl, fileName);
         }
 
+        // Extrair os nomes das especialidades para salvar no Firestore
+        const specialtyNames = formData.specialties.map(specialty => specialty.name);
+
         // Create the professional object
         const professionalData: Omit<Professional, "id"> = {
           name: formData.name,
           address: formData.address,
-          specialty: formData.specialty?.name,
+          specialties: specialtyNames,
           whatsapp: formData.whatsapp,
           imageUrl: imageUrl,
         };
@@ -287,12 +301,12 @@ export default function RegisterProfessionalScreen() {
             error={errors.address}
           />
 
-          <FormSelect
-            label="Especialidade"
+          <FormMultiSelect
+            label="Especialidades"
             options={specialties}
-            selectedOption={formData.specialty}
-            onSelect={handleSpecialtySelect}
-            error={errors.specialty}
+            selectedOptions={formData.specialties}
+            onSelect={handleSpecialtiesSelect}
+            error={errors.specialties}
           />
 
           <FormInput
