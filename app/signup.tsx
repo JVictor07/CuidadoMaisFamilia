@@ -83,7 +83,7 @@ export default function SignupScreen() {
           [
             {
               text: 'OK',
-              onPress: () => router.replace('/(tabs)'),
+              onPress: () => router.replace('/(tabs)/professionals'),
             },
           ]
         );

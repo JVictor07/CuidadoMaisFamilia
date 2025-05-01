@@ -28,13 +28,6 @@ export default function TabLayout() {
         }),
       }}>
       <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <Ionicons name="home" size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="professionals"
         options={{
           title: 'Profissionais',
@@ -46,6 +39,13 @@ export default function TabLayout() {
         options={{
           title: 'Comunidades',
           tabBarIcon: ({ color }) => <Ionicons name="globe" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="blogs"
+        options={{
+          title: 'Blogs',
+          tabBarIcon: ({ color }) => <Ionicons name="book" size={24} color={color} />,
         }}
       />
       <Tabs.Screen

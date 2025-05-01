@@ -58,7 +58,7 @@ export default function LoginScreen() {
       setIsLoading(true);
       try {
         await signInUser(email, password);
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/professionals');
       } catch (error: any) {
         let errorMessage = 'Ocorreu um erro ao fazer login. Tente novamente.';
         

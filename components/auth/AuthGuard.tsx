@@ -21,9 +21,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       if (!isAuthenticated && !isPublicRoute) {
         // Redirect to login if user is not authenticated and trying to access a protected route
         router.replace('/login');
-      } else if (isAuthenticated && isPublicRoute) {
-        // Redirect to home if user is authenticated and trying to access a public route
-        router.replace('/(tabs)');
+      } else if (isAuthenticated && publicRoutes.some(route => pathname === route)) {
+        // Redirect to home if user is authenticated and trying to access a public route (like login)
+        router.replace('/(tabs)/professionals');
       }
     }
   }, [isAuthenticated, isLoading, pathname, router]);
