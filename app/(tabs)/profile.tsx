@@ -275,4 +275,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Onest-Medium',
     marginLeft: 8,
   },
+  roleBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+  },
+  roleText: {
+    color: 'white',
+    fontSize: 12,
+    lineHeight: 12,
+    fontFamily: 'Onest-Medium',
+    textAlign: 'center',
+  },
 });
