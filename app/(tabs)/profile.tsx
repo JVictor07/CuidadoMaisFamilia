@@ -18,6 +18,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOutUser } from '@/services/authService';
 import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
+import { EditProfileModal } from '@/components/auth/EditProfileModal';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function ProfileScreen() {
   const { user, userRole, isAdmin, checkUserRole } = useAuth();
   const primaryColor = Colors[colorScheme ?? 'light'].primaryBlue;
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
+  const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
 
   // Verificar a role do usuário ao carregar o componente
   useEffect(() => {
@@ -103,7 +105,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => CustomAlert.alert('Informação', 'Funcionalidade em desenvolvimento')}
+            onPress={() => setEditProfileModalVisible(true)}
           >
             <Ionicons
               name="person-outline"
@@ -176,6 +178,11 @@ export default function ProfileScreen() {
       <ChangePasswordModal 
         visible={changePasswordModalVisible}
         onClose={() => setChangePasswordModalVisible(false)}
+      />
+      <EditProfileModal 
+        visible={editProfileModalVisible}
+        onClose={() => setEditProfileModalVisible(false)}
+        user={user}
       />
     </ThemedView>
   );

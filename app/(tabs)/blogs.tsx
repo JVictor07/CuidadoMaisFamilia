@@ -145,11 +145,9 @@ export default function BlogsScreen() {
         headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
         headerImage={
           <View style={styles.headerImageContainer}>
-            <Ionicons 
-              name="book" 
-              size={120} 
-              color={Colors[colorScheme ?? 'light'].text + '40'} 
-              style={styles.headerIcon}
+            <Image
+              source={require('@/assets/images/blogs.jpg')}
+              style={styles.headerImage}
             />
           </View>
         }>
@@ -189,6 +187,14 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     opacity: 0.85,
+  },
+  headerImage: {
+    height: 250,
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    opacity: 0.85,
+    resizeMode: 'cover',
   },
   subtitle: {
     marginBottom: 20,

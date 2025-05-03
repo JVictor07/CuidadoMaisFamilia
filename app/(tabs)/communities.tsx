@@ -67,9 +67,9 @@ export default function CommunitiesScreen() {
     if (loading) {
       return (
         <View style={styles.centerContainer}>
-          <ActivityIndicator 
-            size="large" 
-            color={Colors[colorScheme ?? 'light'].primaryBlue} 
+          <ActivityIndicator
+            size="large"
+            color={Colors[colorScheme ?? 'light'].primaryBlue}
           />
           <ThemedText style={styles.loadingText}>
             Carregando comunidades...
@@ -82,11 +82,11 @@ export default function CommunitiesScreen() {
       return (
         <View style={styles.centerContainer}>
           <ThemedText style={styles.errorText}>{error}</ThemedText>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.retryButton, 
+              styles.retryButton,
               { backgroundColor: Colors[colorScheme ?? 'light'].primaryBlue }
-            ]} 
+            ]}
             onPress={fetchCommunities}
           >
             <ThemedText style={styles.retryButtonText}>
@@ -104,11 +104,11 @@ export default function CommunitiesScreen() {
             Nenhuma comunidade cadastrada ainda.
           </ThemedText>
           {isAdmin && (
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
-                styles.addFirstButton, 
+                styles.addFirstButton,
                 { backgroundColor: Colors[colorScheme ?? 'light'].primaryBlue }
-              ]} 
+              ]}
               onPress={handleAddCommunity}
             >
               <ThemedText style={styles.addFirstButtonText}>
@@ -146,28 +146,26 @@ export default function CommunitiesScreen() {
         headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
         headerImage={
           <View style={styles.headerImageContainer}>
-            <Ionicons 
-              name="people" 
-              size={120} 
-              color={Colors[colorScheme ?? 'light'].text + '40'} 
-              style={styles.headerIcon}
+            <Image
+              source={require('@/assets/images/communities.jpg')}
+              style={styles.headerImage}
             />
           </View>
         }>
         <ThemedView style={styles.titleContainer}>
           <ThemedText type="title">Comunidades</ThemedText>
         </ThemedView>
-        
+
         <ThemedText style={styles.subtitle}>
           Encontre e participe de comunidades de apoio para sua família
         </ThemedText>
-        
+
         {renderContent()}
       </ParallaxScrollView>
-      
+
       {/* Mostrar o botão de adicionar apenas para admins */}
-      {isAdmin && communities.length > 0 && <FloatingActionButton 
-        onPress={handleAddCommunity} 
+      {isAdmin && communities.length > 0 && <FloatingActionButton
+        onPress={handleAddCommunity}
         color={Colors[colorScheme ?? 'light'].primaryBlue}
       />}
     </View>
@@ -190,6 +188,14 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     opacity: 0.85,
+  },
+  headerImage: {
+    height: 250,
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    opacity: 0.85,
+    resizeMode: 'cover',
   },
   subtitle: {
     marginBottom: 20,
