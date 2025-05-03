@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -17,12 +17,14 @@ import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOutUser } from '@/services/authService';
+import { ChangePasswordModal } from '@/components/auth/ChangePasswordModal';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const { user, userRole, isAdmin, checkUserRole } = useAuth();
   const primaryColor = Colors[colorScheme ?? 'light'].primaryBlue;
+  const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
 
   // Verificar a role do usuário ao carregar o componente
   useEffect(() => {
@@ -118,7 +120,7 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => CustomAlert.alert('Informação', 'Funcionalidade em desenvolvimento')}
+            onPress={() => setChangePasswordModalVisible(true)}
           >
             <Ionicons
               name="lock-closed-outline"
@@ -126,26 +128,6 @@ export default function ProfileScreen() {
               color={Colors[colorScheme ?? 'light'].text}
             />
             <ThemedText style={styles.menuItemText}>Alterar Senha</ThemedText>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={Colors[colorScheme ?? 'light'].text}
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => {
-              // Toggle theme logic would go here
-              CustomAlert.alert('Informação', 'Funcionalidade em desenvolvimento');
-            }}
-          >
-            <Ionicons
-              name={colorScheme === 'dark' ? 'moon-outline' : 'sunny-outline'}
-              size={24}
-              color={Colors[colorScheme ?? 'light'].text}
-            />
-            <ThemedText style={styles.menuItemText}>Tema do Aplicativo</ThemedText>
             <Ionicons
               name="chevron-forward"
               size={20}
@@ -191,6 +173,10 @@ export default function ProfileScreen() {
           </ThemedText>
         </TouchableOpacity>
       </ScrollView>
+      <ChangePasswordModal 
+        visible={changePasswordModalVisible}
+        onClose={() => setChangePasswordModalVisible(false)}
+      />
     </ThemedView>
   );
 }

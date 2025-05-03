@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useForm, Controller } from 'react-hook-form';
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -28,22 +29,14 @@ import {
   getCommunityById,
 } from "@/services/communityService";
 
-interface FormData {
+type FormData = {
   name: string;
   description: string;
   link: string;
   categories: { id: string; name: string }[];
   imageUrl: string;
   id?: string; // Optional id for editing
-}
-
-interface FormErrors {
-  name?: string;
-  description?: string;
-  link?: string;
-  categories?: string;
-  imageUrl?: string;
-}
+};
 
 export default function RegisterCommunityScreen() {
   const router = useRouter();
@@ -51,18 +44,20 @@ export default function RegisterCommunityScreen() {
   const colorScheme = useColorScheme();
   const [isEditMode, setIsEditMode] = useState(false);
   const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    description: "",
-    link: "",
-    categories: [],
-    imageUrl: "",
+  const { control, handleSubmit, formState: { errors }, setValue, watch, reset } = useForm<FormData>({
+    defaultValues: {
+      name: "",
+      description: "",
+      link: "",
+      categories: [],
+      imageUrl: "",
+    }
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const watchedValues = watch();
 
   // Parse community data from params if available
   useEffect(() => {
@@ -86,14 +81,13 @@ export default function RegisterCommunityScreen() {
               });
             }
             
-            setFormData({
-              id: communityData.id,
-              name: communityData.name,
-              description: communityData.description,
-              link: communityData.link,
-              categories: categoriesArray,
-              imageUrl: communityData.imageUrl,
-            });
+            // Atualizar os valores do formulário usando setValue
+            setValue('id', communityData.id);
+            setValue('name', communityData.name);
+            setValue('description', communityData.description);
+            setValue('link', communityData.link);
+            setValue('categories', categoriesArray);
+            setValue('imageUrl', communityData.imageUrl);
             
             setIsEditMode(true);
           }
@@ -125,142 +119,89 @@ export default function RegisterCommunityScreen() {
         </TouchableOpacity>
       ),
     });
-  }, [isEditMode, navigation, router, colorScheme]);
-
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user types
-    if (field in errors && errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
+  }, [isEditMode, navigation, colorScheme, router]);
 
   const handleCategoriesSelect = (options: { id: string; name: string }[]) => {
-    setFormData((prev) => ({ 
-      ...prev, 
-      categories: options
-    }));
-    if (errors.categories) {
-      setErrors((prev) => ({ ...prev, categories: undefined }));
-    }
+    setValue('categories', options, { shouldValidate: true });
   };
 
   const handleImageSelect = async () => {
-    // Request permission to access the media library
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (status !== 'granted') {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        setValue('imageUrl', selectedImage.uri, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error("Error selecting image:", error);
       CustomAlert.alert(
-        "Permissão Negada",
-        "Precisamos de permissão para acessar sua galeria de fotos."
+        "Erro",
+        "Não foi possível selecionar a imagem. Tente novamente.",
+        [{ text: "OK" }]
       );
-      return;
-    }
-
-    // Launch the image picker
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      // Just store the local URI temporarily - we'll upload it to Firebase when submitting
-      setFormData((prev) => ({ ...prev, imageUrl: result.assets[0].uri }));
-      if (errors.imageUrl) {
-        setErrors((prev) => ({ ...prev, imageUrl: undefined }));
-      }
     }
   };
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
+  const onSubmit = async (data: FormData) => {
+    try {
+      setIsSubmitting(true);
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Nome é obrigatório";
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = "Descrição é obrigatória";
-    }
-
-    if (!formData.link.trim()) {
-      newErrors.link = "Link é obrigatório";
-    } else if (!formData.link.startsWith('http')) {
-      newErrors.link = "Link deve começar com http:// ou https://";
-    }
-
-    if (!formData.categories || formData.categories.length === 0) {
-      newErrors.categories = "Pelo menos uma categoria é obrigatória";
-    }
-
-    if (!formData.imageUrl) {
-      newErrors.imageUrl = "Imagem é obrigatória";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (validateForm()) {
-      try {
-        setIsSubmitting(true);
-
-        // Upload the image to Firebase Storage and get the download URL
-        let imageUrl = formData.imageUrl;
-        
-        // Only upload if it's a local URI (not already a remote URL)
-        if (formData.imageUrl && !formData.imageUrl.startsWith('http')) {
-          const fileName = `community_${Date.now()}`;
-          imageUrl = await uploadCommunityImage(formData.imageUrl, fileName);
-        }
-
-        // Extrair os nomes das categorias para salvar no Firestore
-        const categoryNames = formData.categories.map(category => category.name);
-
-        // Create the community object
-        const communityData: Omit<Community, "id"> = {
-          name: formData.name,
-          description: formData.description,
-          link: formData.link,
-          categories: categoryNames,
-          imageUrl: imageUrl,
-        };
-
-        let successMessage = "";
-        
-        if (isEditMode && formData.id) {
-          // Update existing community
-          await updateCommunity(formData.id, communityData);
-          successMessage = `${formData.name} foi atualizada com sucesso!`;
-        } else {
-          // Add new community
-          await addCommunity(communityData);
-          successMessage = `${formData.name} foi cadastrada com sucesso!`;
-        }
-
-        CustomAlert.alert(
-          isEditMode ? "Comunidade Atualizada" : "Comunidade Cadastrada",
-          successMessage,
-          [
-            {
-              text: "OK",
-              onPress: () => router.back(),
-            },
-          ]
-        );
-      } catch (error) {
-        console.error("Error saving community:", error);
-        CustomAlert.alert(
-          "Erro",
-          `Ocorreu um erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} a comunidade. Tente novamente.`,
-          [{ text: "OK" }]
-        );
-      } finally {
-        setIsSubmitting(false);
+      // Upload image if it's a local URI (not a URL)
+      let imageUrl = data.imageUrl;
+      if (data.imageUrl && !data.imageUrl.startsWith('http')) {
+        imageUrl = await uploadCommunityImage(data.imageUrl);
       }
+
+      // Extract category names for storage
+      const categoryNames = data.categories.map(cat => cat.name);
+
+      // Prepare community data for saving
+      const communityData: Community = {
+        id: data.id || '', // Will be generated by Firebase if new
+        name: data.name,
+        description: data.description,
+        link: data.link,
+        categories: categoryNames,
+        imageUrl: imageUrl,
+      };
+
+      let successMessage = "";
+      
+      if (isEditMode && data.id) {
+        // Update existing community
+        await updateCommunity(data.id, communityData);
+        successMessage = `${data.name} foi atualizada com sucesso!`;
+      } else {
+        // Add new community
+        await addCommunity(communityData);
+        successMessage = `${data.name} foi cadastrada com sucesso!`;
+      }
+
+      CustomAlert.alert(
+        isEditMode ? "Comunidade Atualizada" : "Comunidade Cadastrada",
+        successMessage,
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error saving community:", error);
+      CustomAlert.alert(
+        "Erro",
+        `Ocorreu um erro ao ${isEditMode ? 'atualizar' : 'cadastrar'} a comunidade. Tente novamente.`,
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -272,45 +213,106 @@ export default function RegisterCommunityScreen() {
         </View>
       ) : (
         <ScrollView style={styles.content}>
-          <CustomImagePicker
-            label="Imagem da Comunidade"
-            imageUri={formData.imageUrl}
-            onSelectImage={handleImageSelect}
-            error={errors.imageUrl}
+          <Controller
+            control={control}
+            rules={{
+              required: 'A imagem da comunidade é obrigatória'
+            }}
+            render={({ field: { value } }) => (
+              <CustomImagePicker
+                label="Imagem da Comunidade"
+                imageUri={value}
+                onSelectImage={handleImageSelect}
+                error={errors.imageUrl?.message}
+              />
+            )}
+            name="imageUrl"
           />
 
-          <FormInput
-            label="Nome"
-            placeholder="Nome da comunidade"
-            value={formData.name}
-            onChangeText={(value) => handleInputChange("name", value)}
-            error={errors.name}
+          <Controller
+            control={control}
+            rules={{
+              required: 'O nome da comunidade é obrigatório',
+              minLength: {
+                value: 3,
+                message: 'O nome deve ter pelo menos 3 caracteres'
+              }
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <FormInput
+                label="Nome"
+                placeholder="Nome da comunidade"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.name?.message}
+              />
+            )}
+            name="name"
           />
 
-          <FormInput
-            label="Descrição"
-            placeholder="Descreva o propósito da comunidade"
-            value={formData.description}
-            onChangeText={(value) => handleInputChange("description", value)}
-            error={errors.description}
-            multiline
-            numberOfLines={4}
+          <Controller
+            control={control}
+            rules={{
+              required: 'A descrição da comunidade é obrigatória',
+              minLength: {
+                value: 10,
+                message: 'A descrição deve ter pelo menos 10 caracteres'
+              }
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <FormInput
+                label="Descrição"
+                placeholder="Descreva o propósito da comunidade"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.description?.message}
+                multiline
+                numberOfLines={4}
+              />
+            )}
+            name="description"
           />
 
-          <FormMultiSelect
-            label="Categorias"
-            options={categories}
-            selectedOptions={formData.categories}
-            onSelect={handleCategoriesSelect}
-            error={errors.categories}
+          <Controller
+            control={control}
+            rules={{
+              required: 'Selecione pelo menos uma categoria',
+              validate: value => value.length > 0 || 'Selecione pelo menos uma categoria'
+            }}
+            render={({ field: { value } }) => (
+              <FormMultiSelect
+                label="Categorias"
+                options={categories}
+                selectedOptions={value}
+                onSelect={handleCategoriesSelect}
+                error={errors.categories?.message}
+              />
+            )}
+            name="categories"
           />
 
-          <FormInput
-            label="Link"
-            placeholder="Link para a comunidade (WhatsApp, Telegram, etc.)"
-            value={formData.link}
-            onChangeText={(value) => handleInputChange("link", value)}
-            error={errors.link}
+          <Controller
+            control={control}
+            rules={{
+              required: 'O link da comunidade é obrigatório',
+              pattern: {
+                value: /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
+                message: 'Insira um link válido'
+              }
+            }}
+            render={({ field: { onChange, onBlur, value } }) => (
+              <FormInput
+                label="Link"
+                placeholder="Link para a comunidade (WhatsApp, Telegram, etc.)"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.link?.message}
+              />
+            )}
+            name="link"
           />
 
           <TouchableOpacity
@@ -319,7 +321,7 @@ export default function RegisterCommunityScreen() {
               { backgroundColor: Colors[colorScheme ?? "light"].primaryBlue },
               isSubmitting && styles.disabledButton,
             ]}
-            onPress={handleSubmit}
+            onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}
           >
             <ThemedText style={styles.submitButtonText}>

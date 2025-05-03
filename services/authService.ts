@@ -5,7 +5,10 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   User as FirebaseUser,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
@@ -123,6 +126,28 @@ export const updateUserProfile = async (displayName?: string, photoURL?: string)
     }
   } catch (error) {
     console.error('Error updating user profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update user password
+ */
+export const updateUserPassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  try {
+    const user = auth.currentUser;
+    if (!user || !user.email) {
+      throw new Error('No user is currently signed in or user has no email');
+    }
+    
+    // Reauthenticate user before changing password
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    
+    // Update password
+    await updatePassword(user, newPassword);
+  } catch (error) {
+    console.error('Error updating password:', error);
     throw error;
   }
 };
