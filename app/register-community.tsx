@@ -269,7 +269,7 @@ export default function RegisterCommunityScreen() {
                 onBlur={onBlur}
                 error={errors.description?.message}
                 multiline
-                numberOfLines={4}
+                numberOfLines={3}
               />
             )}
             name="description"

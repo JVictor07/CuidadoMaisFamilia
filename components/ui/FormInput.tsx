@@ -9,7 +9,7 @@ interface FormInputProps extends TextInputProps {
   rightIcon?: React.ReactNode;
 }
 
-export function FormInput({ label, error, rightIcon, ...props }: FormInputProps) {
+export function FormInput({ label, error, rightIcon, multiline, numberOfLines, ...props }: FormInputProps) {
   const colorScheme = useColorScheme();
   const textColor = Colors[colorScheme ?? 'light'].text;
   const borderColor = error 
@@ -23,7 +23,10 @@ export function FormInput({ label, error, rightIcon, ...props }: FormInputProps)
         styles.inputContainer,
         { 
           borderColor: borderColor,
-          backgroundColor: Colors[colorScheme ?? 'light'].cardBackground
+          backgroundColor: Colors[colorScheme ?? 'light'].cardBackground,
+          height: multiline ? undefined : 50,
+          minHeight: multiline ? 50 * (numberOfLines || 3) : 50,
+          alignItems: multiline ? 'flex-start' : 'center'
         }
       ]}>
         <TextInput
@@ -31,9 +34,14 @@ export function FormInput({ label, error, rightIcon, ...props }: FormInputProps)
             styles.input,
             { 
               color: textColor,
+              height: multiline ? '100%' : 50,
+              textAlignVertical: multiline ? 'top' : 'center',
+              paddingTop: multiline ? 12 : 0
             }
           ]}
           placeholderTextColor={textColor + '80'}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
           {...props}
         />
         {rightIcon && <View style={styles.rightIconContainer}>{rightIcon}</View>}
@@ -54,15 +62,12 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    height: 50,
     borderWidth: 1,
     borderRadius: 8,
     overflow: 'hidden',
   },
   input: {
     flex: 1,
-    height: '100%',
     paddingHorizontal: 16,
     fontSize: 16,
     fontFamily: 'Onest-Regular',
