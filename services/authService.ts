@@ -11,7 +11,8 @@ import {
   reauthenticateWithCredential
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, db, storage } from '../config/firebase';
 
 export interface User {
   uid: string;
@@ -126,6 +127,38 @@ export const updateUserProfile = async (displayName?: string, photoURL?: string)
     }
   } catch (error) {
     console.error('Error updating user profile:', error);
+    throw error;
+  }
+};
+
+/**
+ * Upload a user profile image to Firebase Storage and return the download URL
+ */
+export const uploadUserProfileImage = async (uri: string): Promise<string> => {
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('No user is currently signed in');
+    }
+
+    // Generate a unique filename using user ID and timestamp
+    const fileName = `${user.uid}_${new Date().getTime()}`;
+    
+    // Convert URI to blob
+    const response = await fetch(uri);
+    const blob = await response.blob();
+    
+    // Create a reference to the file location
+    const storageRef = ref(storage, `users/${fileName}`);
+    
+    // Upload the blob
+    await uploadBytes(storageRef, blob);
+    
+    // Get the download URL
+    const downloadURL = await getDownloadURL(storageRef);
+    return downloadURL;
+  } catch (error) {
+    console.error('Error uploading profile image:', error);
     throw error;
   }
 };

@@ -23,7 +23,7 @@ import { EditProfileModal } from '@/components/auth/EditProfileModal';
 export default function ProfileScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const { user, userRole, isAdmin, checkUserRole } = useAuth();
+  const { user, userRole, isAdmin, checkUserRole, refreshUserProfile } = useAuth();
   const primaryColor = Colors[colorScheme ?? 'light'].primaryBlue;
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
   const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
@@ -183,6 +183,7 @@ export default function ProfileScreen() {
         visible={editProfileModalVisible}
         onClose={() => setEditProfileModalVisible(false)}
         user={user}
+        onProfileUpdate={refreshUserProfile}
       />
     </ThemedView>
   );

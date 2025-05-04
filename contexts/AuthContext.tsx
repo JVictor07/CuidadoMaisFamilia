@@ -8,6 +8,7 @@ interface AuthContextType {
   userRole: string | null;
   isAdmin: boolean;
   checkUserRole: () => Promise<string | null>;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   userRole: null,
   isAdmin: false,
   checkUserRole: async () => null,
+  refreshUserProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -49,6 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     
     return null;
+  };
+
+  // Refresh user profile data from Firebase
+  const refreshUserProfile = async (): Promise<void> => {
+    try {
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        setUserRole(currentUser.role || null);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil do usuário:', error);
+    }
   };
 
   useEffect(() => {
@@ -87,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     userRole,
     isAdmin: userRole === 'admin',
     checkUserRole,
+    refreshUserProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

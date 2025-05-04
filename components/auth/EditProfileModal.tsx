@@ -8,7 +8,7 @@ import { ThemedText } from '../ThemedText';
 import { ThemedView } from '../ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { updateUserProfile } from '@/services/authService';
+import { updateUserProfile, uploadUserProfileImage } from '@/services/authService';
 import { CustomAlert } from '../ui/CustomAlert';
 import { User } from '@/services/authService';
 
@@ -16,6 +16,7 @@ interface EditProfileModalProps {
   visible: boolean;
   onClose: () => void;
   user: User | null;
+  onProfileUpdate?: () => void;
 }
 
 type FormData = {
@@ -23,7 +24,7 @@ type FormData = {
   photoURL: string;
 };
 
-export function EditProfileModal({ visible, onClose, user }: EditProfileModalProps) {
+export function EditProfileModal({ visible, onClose, user, onProfileUpdate }: EditProfileModalProps) {
   const colorScheme = useColorScheme();
   const primaryColor = Colors[colorScheme ?? 'light'].primaryBlue;
   const backgroundColor = Colors[colorScheme ?? 'light'].cardBackground;
@@ -87,11 +88,24 @@ export function EditProfileModal({ visible, onClose, user }: EditProfileModalPro
     setGeneralError('');
     
     try {
-      // For now, we're only updating the display name
-      // In a real app, you would upload the image to storage and get a URL
-      await updateUserProfile(data.displayName, data.photoURL);
+      let photoURL = data.photoURL;
+      
+      // If there's a selected image that's different from the current user photo,
+      // upload it to Firebase Storage first
+      if (selectedImage && selectedImage !== user?.photoURL) {
+        photoURL = await uploadUserProfileImage(selectedImage);
+      }
+      
+      // Update user profile with the display name and the photo URL (which might be the uploaded image URL)
+      await updateUserProfile(data.displayName, photoURL);
       setIsLoading(false);
       CustomAlert.alert('Sucesso', 'Seu perfil foi atualizado com sucesso!');
+      
+      // Call the onProfileUpdate callback if provided
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+      
       handleClose();
     } catch (error: any) {
       setIsLoading(false);
