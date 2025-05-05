@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   View,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
@@ -26,6 +27,7 @@ import {
   updateBlog,
   uploadBlogImage,
   getBlogById,
+  deleteBlog,
 } from "@/services/blogService";
 
 interface FormData {
@@ -108,6 +110,56 @@ export default function RegisterBlogScreen() {
     }
   }, []);  // Empty dependency array - run only once on mount
 
+  // Handle blog deletion
+  const handleDeleteBlog = () => {
+    if (!isEditMode || !formData.id) return;
+    
+    CustomAlert.alert(
+      "Excluir Blog",
+      `Tem certeza que deseja excluir "${formData.name}"? Esta ação não pode ser desfeita.`,
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setIsSubmitting(true);
+              // Use non-null assertion since we already checked above
+              await deleteBlog(formData.id!);
+              
+              CustomAlert.alert(
+                "Blog Excluído",
+                `${formData.name} foi excluído com sucesso!`,
+                [
+                  {
+                    text: "OK",
+                    onPress: () => router.replace({
+                      pathname: '/(tabs)/blogs',
+                      params: { refresh: Date.now().toString() }
+                    }),
+                  },
+                ]
+              );
+            } catch (error) {
+              console.error("Error deleting blog:", error);
+              CustomAlert.alert(
+                "Erro",
+                "Não foi possível excluir o blog. Tente novamente.",
+                [{ text: "OK" }]
+              );
+            } finally {
+              setIsSubmitting(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Update header title based on isEditMode
   useEffect(() => {
     navigation.setOptions({
@@ -120,8 +172,16 @@ export default function RegisterBlogScreen() {
           <Ionicons name="arrow-back" size={24} color={Colors[colorScheme ?? 'light'].text} />
         </TouchableOpacity>
       ),
+      headerRight: isEditMode ? () => (
+        <TouchableOpacity 
+          onPress={handleDeleteBlog}
+          style={{ padding: 10 }}
+        >
+          <Ionicons name="trash-outline" size={24} color={Colors[colorScheme ?? 'light'].text} />
+        </TouchableOpacity>
+      ) : undefined,
     });
-  }, [isEditMode, colorScheme, navigation, router]);
+  }, [isEditMode, colorScheme, navigation, router, formData.name, formData.id]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
@@ -274,7 +334,13 @@ export default function RegisterBlogScreen() {
         [
           {
             text: "OK",
-            onPress: () => router.back(),
+            onPress: () => {
+              // Navigate back to the blogs tab with a refresh parameter
+              router.replace({
+                pathname: '/(tabs)/blogs',
+                params: { refresh: Date.now().toString() }
+              });
+            },
           },
         ]
       );

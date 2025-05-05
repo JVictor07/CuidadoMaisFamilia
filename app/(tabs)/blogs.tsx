@@ -1,5 +1,5 @@
 import { StyleSheet, FlatList, Alert, Image, View, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -17,6 +17,8 @@ import { CustomAlert } from '@/components/ui/CustomAlert';
 
 export default function BlogsScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const refreshParam = params.refresh;
   const colorScheme = useColorScheme();
   const { user, isAdmin } = useAuth();
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -25,7 +27,7 @@ export default function BlogsScreen() {
 
   useEffect(() => {
     fetchBlogs();
-  }, []);
+  }, [refreshParam]);
 
   const fetchBlogs = async () => {
     try {

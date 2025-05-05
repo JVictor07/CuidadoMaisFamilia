@@ -1,7 +1,6 @@
 import { StyleSheet, FlatList, Alert, Image, View, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { Ionicons } from '@expo/vector-icons';
 
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -13,10 +12,11 @@ import { getCommunities } from '@/services/communityService';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/contexts/AuthContext';
-import { CustomAlert } from '@/components/ui/CustomAlert';
 
 export default function CommunitiesScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  const refreshParam = params.refresh;
   const colorScheme = useColorScheme();
   const { user, isAdmin } = useAuth();
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -25,7 +25,7 @@ export default function CommunitiesScreen() {
 
   useEffect(() => {
     fetchCommunities();
-  }, []);
+  }, [refreshParam]);
 
   const fetchCommunities = async () => {
     try {

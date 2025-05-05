@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   View,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
@@ -27,6 +28,7 @@ import {
   updateProfessional,
   uploadProfessionalImage,
   getProfessionalById,
+  deleteProfessional,
 } from "@/services/professionalService";
 
 interface FormData {
@@ -113,20 +115,77 @@ export default function RegisterProfessionalScreen() {
     }
   }, []);  // Empty dependency array - run only once on mount
 
+  // Handle professional deletion
+  const handleDeleteProfessional = () => {
+    if (!formData.id) return;
+    
+    CustomAlert.alert(
+      "Excluir Profissional",
+      `Tem certeza que deseja excluir ${formData.name}? Esta ação não pode ser desfeita.`,
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setIsSubmitting(true);
+              await deleteProfessional(formData.id!);
+              
+              CustomAlert.alert(
+                "Profissional Excluído",
+                `${formData.name} foi excluído com sucesso!`,
+                [
+                  {
+                    text: "OK",
+                    onPress: () => router.replace({
+                      pathname: '/(tabs)/professionals',
+                      params: { refresh: Date.now().toString() }
+                    }),
+                  },
+                ]
+              );
+            } catch (error) {
+              console.error("Error deleting professional:", error);
+              CustomAlert.alert(
+                "Erro",
+                "Não foi possível excluir o profissional. Tente novamente.",
+                [{ text: "OK" }]
+              );
+            } finally {
+              setIsSubmitting(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Update header title based on isEditMode
   useEffect(() => {
     navigation.setOptions({
       title: isEditMode ? "Editar Profissional" : "Registrar Profissional",
       headerLeft: () => (
         <TouchableOpacity 
-          onPress={() => router.replace("/(tabs)/professionals")}
+          onPress={() => router.back()}
           style={{ padding: 10 }}
         >
           <Ionicons name="arrow-back" size={24} color={Colors[colorScheme ?? 'light'].text} />
         </TouchableOpacity>
       ),
+      headerRight: isEditMode ? () => (
+        <TouchableOpacity 
+          onPress={handleDeleteProfessional}
+          style={{ padding: 10 }}
+        >
+          <Ionicons name="trash-outline" size={24} color={Colors[colorScheme ?? 'light'].text} />
+        </TouchableOpacity>
+      ) : undefined,
     });
-  }, [isEditMode, navigation, router, colorScheme]);
+  }, [isEditMode, colorScheme, navigation, router, formData.name]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -253,7 +312,10 @@ export default function RegisterProfessionalScreen() {
           [
             {
               text: "OK",
-              onPress: () => router.replace("/(tabs)/professionals"),
+              onPress: () => router.replace({
+                pathname: '/(tabs)/professionals',
+                params: { refresh: Date.now().toString() }
+              }),
             },
           ]
         );
