@@ -144,7 +144,7 @@ export default function ProfileScreen() {
           <TouchableOpacity
             style={styles.menuItem}
             onPress={() => {
-              CustomAlert.alert('Sobre', 'Cuidado Mais Família v1.0.0\n\nUm aplicativo para gerenciamento de profissionais de saúde.');
+              CustomAlert.alert('Sobre', 'Cuidado Mais Família v1.0.0\n\nO Cuidado + Família é um aplicativo criado para oferecer suporte completo a pais de crianças com doenças degenerativas. Ele tem como principal missão proporcionar um ambiente seguro, acessível e informativo, reunindo em um único lugar apoio emocional, orientações práticas e acesso facilitado a profissionais da área da saúde.');
             }}
           >
             <Ionicons

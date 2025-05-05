@@ -1,4 +1,4 @@
-import { StyleSheet, FlatList, Alert, Image, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { StyleSheet, FlatList, Image, View, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 
@@ -12,6 +12,7 @@ import { getCommunities } from '@/services/communityService';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useAuth } from '@/contexts/AuthContext';
+import { CustomAlert } from '@/components/ui/CustomAlert'; // Import CustomAlert
 
 export default function CommunitiesScreen() {
   const router = useRouter();
@@ -51,11 +52,17 @@ export default function CommunitiesScreen() {
         params: { id: community.id }
       });
     } else {
-      // Se for usuário comum, vai para a tela de detalhes
-      router.push({
-        pathname: '/community-details' as any,
-        params: { id: community.id }
-      });
+      // Se for usuário comum, abre o link diretamente
+      if (community.link) {
+        Linking.openURL(community.link).catch(err => {
+          console.error('Error opening link:', err);
+          CustomAlert.alert(
+            "Erro",
+            "Não foi possível abrir o link. Verifique sua conexão com a internet.",
+            [{ text: "OK" }]
+          );
+        });
+      }
     }
   };
 

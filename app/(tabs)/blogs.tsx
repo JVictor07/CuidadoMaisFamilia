@@ -1,4 +1,4 @@
-import { StyleSheet, FlatList, Alert, Image, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { StyleSheet, FlatList, Image, View, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -53,11 +53,17 @@ export default function BlogsScreen() {
         params: { id: blog.id }
       });
     } else {
-      // Se for usuário comum, vai para a tela de detalhes
-      router.push({
-        pathname: '/blog-details' as any,
-        params: { id: blog.id }
-      });
+      // Se for usuário comum, abre o link diretamente
+      if (blog.link) {
+        Linking.openURL(blog.link).catch(err => {
+          console.error('Error opening link:', err);
+          CustomAlert.alert(
+            "Erro",
+            "Não foi possível abrir o link. Verifique sua conexão com a internet.",
+            [{ text: "OK" }]
+          );
+        });
+      }
     }
   };
 
