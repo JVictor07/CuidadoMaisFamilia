@@ -1,126 +1,109 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, onAuthStateChange, signInUser, signOutUser, registerUser } from '@/services/authService';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { User, onAuthStateChange, getCurrentUser } from '@/services/authService';
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
-  clearError: () => void;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  userRole: string | null;
+  isAdmin: boolean;
+  checkUserRole: () => Promise<string | null>;
+  refreshUserProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+  userRole: null,
+  isAdmin: false,
+  checkUserRole: async () => null,
+  refreshUserProfile: async () => {},
+});
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Verifica e atualiza a role do usuário atual
+  const checkUserRole = async (): Promise<string | null> => {
+    if (!user) return null;
+    
+    // Se já temos a role no objeto do usuário, retornamos ela
+    if (user.role) {
+      setUserRole(user.role);
+      return user.role;
+    }
+    
+    // Caso contrário, obtemos o usuário atualizado com a role
+    try {
+      const currentUser = await getCurrentUser();
+      if (currentUser && currentUser.role) {
+        setUserRole(currentUser.role);
+        setUser(currentUser);
+        return currentUser.role;
+      }
+    } catch (error) {
+      console.error('Erro ao verificar a role do usuário:', error);
+    }
+    
+    return null;
+  };
+
+  // Refresh user profile data from Firebase
+  const refreshUserProfile = async (): Promise<void> => {
+    try {
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        setUserRole(currentUser.role || null);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar perfil do usuário:', error);
+    }
+  };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange((user) => {
-      setUser(user);
-      setLoading(false);
+    // Inicializa verificando se há um usuário logado
+    const initAuth = async () => {
+      try {
+        const currentUser = await getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+          setUserRole(currentUser.role || null);
+        }
+      } catch (error) {
+        console.error('Erro ao inicializar autenticação:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
+
+    // Inscreve-se para mudanças no estado de autenticação
+    const unsubscribe = onAuthStateChange((authUser) => {
+      setUser(authUser);
+      setUserRole(authUser?.role || null);
+      setIsLoading(false);
     });
 
-    // Cleanup subscription on unmount
+    // Limpa a inscrição
     return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await signInUser(email, password);
-    } catch (err) {
-      const errorMessage = getAuthErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+  const value = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    userRole,
+    isAdmin: userRole === 'admin',
+    checkUserRole,
+    refreshUserProfile,
   };
 
-  const logout = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await signOutUser();
-    } catch (err) {
-      const errorMessage = getAuthErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const register = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      await registerUser(email, password);
-    } catch (err) {
-      const errorMessage = getAuthErrorMessage(err);
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const clearError = () => {
-    setError(null);
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        login,
-        logout,
-        register,
-        clearError
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Helper function to get user-friendly error messages
-const getAuthErrorMessage = (error: any): string => {
-  const errorCode = error.code || '';
-  
-  switch (errorCode) {
-    case 'auth/invalid-email':
-      return 'O endereço de e-mail não é válido.';
-    case 'auth/user-disabled':
-      return 'Esta conta de usuário foi desativada.';
-    case 'auth/user-not-found':
-      return 'Não há usuário com este e-mail.';
-    case 'auth/wrong-password':
-      return 'Senha incorreta.';
-    case 'auth/email-already-in-use':
-      return 'Este e-mail já está sendo usado por outra conta.';
-    case 'auth/weak-password':
-      return 'A senha é muito fraca. Use pelo menos 6 caracteres.';
-    case 'auth/operation-not-allowed':
-      return 'Operação não permitida.';
-    case 'auth/too-many-requests':
-      return 'Muitas tentativas de login. Tente novamente mais tarde.';
-    default:
-      return error.message || 'Ocorreu um erro durante a autenticação.';
-  }
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}

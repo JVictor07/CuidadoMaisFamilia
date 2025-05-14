@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "projeto-cuidado-mais-familia",
-    "slug": "projeto-cuidado-mais-familia",
+    "name": "CuidadoMaisFamilia",
+    "slug": "CuidadoMaisFamilia",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -12,7 +12,6 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.cuidadomaisfamilia.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -37,14 +36,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
-      },
-      "eas": {
-        "projectId": "bf203a1e-c8d7-4bc2-b097-178e0c13b143"
-      }
     }
   }
 }

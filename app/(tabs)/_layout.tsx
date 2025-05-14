@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -13,9 +14,8 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName="professionals"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].primaryBlue,
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -31,14 +31,28 @@ export default function TabLayout() {
         name="professionals"
         options={{
           title: 'Profissionais',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.2.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="people" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="communities"
         options={{
           title: 'Comunidades',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.3.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="globe" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="blogs"
+        options={{
+          title: 'Blogs',
+          tabBarIcon: ({ color }) => <Ionicons name="book" size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => <Ionicons name="person-circle" size={24} color={color} />,
         }}
       />
     </Tabs>

@@ -13,8 +13,8 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
-  'person.2.fill': 'people',
-  'person.3.fill': 'groups',
+  'person.2.fill': 'person',
+  'people.fill': 'people',
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],
@@ -38,7 +38,7 @@ export function IconSymbol({
   name: IconSymbolName;
   size?: number;
   color: string | OpaqueColorValue;
-  style?: StyleProp<ViewStyle> | any;
+  style?: StyleProp<ViewStyle>;
   weight?: SymbolWeight;
 }) {
   return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;

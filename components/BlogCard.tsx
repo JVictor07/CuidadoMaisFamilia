@@ -1,35 +1,48 @@
 import React from 'react';
-import { StyleSheet, Image, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Image, View, TouchableOpacity } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
 
-interface ProfessionalCardProps {
+interface BlogCardProps {
   name: string;
-  address: string;
   imageUrl: string;
-  specialties: string[];
+  categories: string[];
+  link: string;
   onPress?: () => void;
 }
 
-export function ProfessionalCard({ 
+export function BlogCard({ 
   name, 
-  address, 
   imageUrl, 
-  specialties, 
+  link,
+  categories,
   onPress 
-}: ProfessionalCardProps) {
+}: BlogCardProps) {
   const colorScheme = useColorScheme();
   const cardBgColor = { 
     backgroundColor: Colors[colorScheme ?? 'light'].cardBackground 
   };
-  const specialtyBgColor = {
+  const categoryBgColor = {
     backgroundColor: Colors[colorScheme ?? 'light'].primaryBlue + '20' // Adding transparency
   };
-  const specialtyTextColor = {
+  const categoryTextColor = {
     color: Colors[colorScheme ?? 'light'].primaryBlue
   };
+
+  // Extrair o domínio do link
+  const extractDomain = (url: string) => {
+    try {
+      const domain = new URL(url).hostname.replace('www.', '');
+      return domain;
+    } catch (error) {
+      return url;
+    }
+  };
+
+  const domain = extractDomain(link);
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
@@ -38,22 +51,29 @@ export function ProfessionalCard({
         <View style={styles.contentContainer}>
           <ThemedText type="defaultSemiBold" style={styles.name}>{name}</ThemedText>
           
-          {specialties.length > 0 && (
-            <View style={styles.specialtiesRow}>
-              {specialties.map((spec, index) => (
+          {categories.length > 0 && (
+            <View style={styles.categoriesRow}>
+              {categories.map((category, index) => (
                 <View 
                   key={index} 
-                  style={[styles.specialtyContainer, specialtyBgColor]}
+                  style={[styles.categoryContainer, categoryBgColor]}
                 >
-                  <ThemedText style={[styles.specialty, specialtyTextColor]}>
-                    {spec}
+                  <ThemedText style={[styles.category, categoryTextColor]}>
+                    {category}
                   </ThemedText>
                 </View>
               ))}
             </View>
           )}
           
-          <ThemedText style={styles.address}>{address}</ThemedText>
+          <View style={styles.linkContainer}>
+            <Ionicons 
+              name="globe-outline" 
+              size={14} 
+              color={Colors[colorScheme ?? 'light'].primaryBlue} 
+            />
+            <ThemedText style={styles.link}>{domain}</ThemedText>
+          </View>
         </View>
       </ThemedView>
     </TouchableOpacity>
@@ -82,12 +102,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     fontFamily: 'Onest-SemiBold',
   },
-  specialtiesRow: {
+  categoriesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: 6,
   },
-  specialtyContainer: {
+  categoryContainer: {
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -95,13 +115,18 @@ const styles = StyleSheet.create({
     marginRight: 4,
     marginBottom: 4,
   },
-  specialty: {
+  category: {
     fontSize: 12,
     fontFamily: 'Onest-Medium',
   },
-  address: {
+  linkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  link: {
     fontSize: 14,
     opacity: 0.7,
     fontFamily: 'Onest-Regular',
+    marginLeft: 4,
   },
 });
