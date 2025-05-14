@@ -1,50 +1,103 @@
-# Welcome to your Expo app 👋
+# Cuidado + Família - Projeto Integrador
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Visão Geral
 
-## Get started
+O Cuidado + Família é um aplicativo criado para oferecer suporte completo a pais de crianças com doenças degenerativas. Ele tem como principal missão proporcionar um ambiente seguro, acessível e informativo, reunindo em um único lugar apoio emocional, orientações práticas e acesso facilitado a profissionais da área da saúde.
 
-1. Install dependencies
+## Equipe de Desenvolvimento
 
+- JOÃO VICTOR MOREIRA DA SILVA - joaovictorms07@gmail.com - Responsável pelo desenvolvimento do aplicativo
+- MARIA DA PIEDADE SENA DE OLIVEIRA – mapifrompleiades@gmail.com - Responsável pela criação do vídeo de apresentação do projeto
+- BEATRIZ RIBEIRO MONTALVÃO – beatrizmontalvaor@gmail.com - Responsável pela gestão do projeto, definição de requisitos e documentação
+- RICARDO CARLOS FEITOSA – ricardocarlosf@hotmail.com - Responsável pelo desenvolvimento da landing page do projeto
+- JOÃO FELIPE CEOLIN BARBOSA – jfelipecb@gmail.com - Responsável pelo desenvolvimento da landing page do projeto
+
+## Tecnologias Utilizadas
+
+- **Frontend**: React Native com Expo
+- **Backend**: Firebase (Authentication e Firestore)
+- **Gerenciamento de Estado**: Context API
+- **Estilização**: Componentes temáticos personalizados
+- **Navegação**: Expo Router (file-based routing)
+
+## Arquitetura do Sistema
+
+O aplicativo segue uma arquitetura modular com os seguintes componentes principais:
+
+1. **Sistema de Autenticação**: Utiliza Firebase Authentication para gerenciar login/cadastro com email e senha
+2. **Banco de Dados**: Firebase Firestore para armazenamento de dados dos usuários e informações do aplicativo
+3. **Gerenciamento de Estado**: Context API para compartilhamento de estado entre componentes
+4. **Componentes UI**: Componentes temáticos personalizados como `ThemedText` e `ThemedView`
+
+## Funcionalidades Principais
+
+### Sistema de Usuários
+- Autenticação de usuários (login/cadastro)
+- Gerenciamento de perfis de usuários
+- Sistema de papéis (administrador/usuário)
+- Edição de informações de perfil
+- Alteração de senha
+
+### Profissionais da Saúde
+- Catálogo de profissionais especializados em doenças degenerativas
+- Contato direto via WhatsApp com os profissionais
+- Visualização de especialidades e localização
+- Gerenciamento de profissionais (adicionar/editar) para administradores
+
+### Comunidades de Apoio
+- Acesso a grupos de apoio para pais e familiares
+- Conexão com comunidades online relevantes
+- Integração com plataformas externas via links diretos
+- Gerenciamento de comunidades (adicionar/editar) para administradores
+
+### Blog Informativo
+- Artigos e conteúdos educativos sobre doenças degenerativas
+- Dicas de cuidados e suporte emocional
+- Acesso a recursos externos via links
+- Gerenciamento de conteúdo do blog (adicionar/editar) para administradores
+
+## Como Executar o Projeto
+
+1. Clone o repositório
+
+2. Instale as dependências
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Inicie o aplicativo
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Escolha uma das opções para visualizar o aplicativo:
+   - Emulador Android
+   - Simulador iOS
+   - Expo Go (dispositivo físico)
+   - Web browser
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Estrutura do Projeto
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+/app                    # Diretório principal do aplicativo
+  /components           # Componentes reutilizáveis
+  /contexts             # Context API para gerenciamento de estado
+  /services             # Serviços para interação com Firebase
+  /screens              # Telas do aplicativo
+  /utils                # Funções utilitárias
+/assets                 # Recursos estáticos (imagens, fontes)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Objetivos Educacionais
 
-## Learn more
+Este projeto integra conhecimentos de:
+- Desenvolvimento móvel multiplataforma
+- Arquitetura de software
+- Integração com serviços de backend
+- Experiência do usuário (UX/UI)
+- Gerenciamento de estado em aplicações React
+- Autenticação e segurança
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*Projeto desenvolvido para a disciplina de Projeto Integrador - Centro Universitário SENAC.*
