@@ -129,21 +129,18 @@ export default function BlogsScreen() {
     }
 
     return (
-      <FlatList
-        data={blogs}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+      <View style={styles.listContainer}>
+        {blogs.map((item) => (
           <BlogCard
+            key={item.id}
             name={item.name}
             imageUrl={item.imageUrl}
             link={item.link}
             categories={item.categories}
             onPress={() => handleBlogPress(item)}
           />
-        )}
-        scrollEnabled={false}
-        contentContainerStyle={styles.listContainer}
-      />
+        ))}
+      </View>
     );
   };
 

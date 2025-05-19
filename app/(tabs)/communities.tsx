@@ -128,11 +128,10 @@ export default function CommunitiesScreen() {
     }
 
     return (
-      <FlatList
-        data={communities}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+      <View style={styles.listContainer}>
+        {communities.map((item) => (
           <CommunityCard
+            key={item.id}
             name={item.name}
             description={item.description}
             imageUrl={item.imageUrl}
@@ -140,10 +139,8 @@ export default function CommunitiesScreen() {
             categories={item.categories}
             onPress={() => handleCommunityPress(item)}
           />
-        )}
-        scrollEnabled={false}
-        contentContainerStyle={styles.listContainer}
-      />
+        ))}
+      </View>
     );
   };
 

@@ -131,21 +131,18 @@ export default function ProfessionalsScreen() {
     }
 
     return (
-      <FlatList
-        data={professionals}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
+      <View style={styles.listContainer}>
+        {professionals.map((item) => (
           <ProfessionalCard
+            key={item.id}
             name={item.name}
             address={item.address}
             imageUrl={item.imageUrl}
             specialties={item.specialties}
             onPress={() => handleProfessionalPress(item)}
           />
-        )}
-        scrollEnabled={false}
-        contentContainerStyle={styles.listContainer}
-      />
+        ))}
+      </View>
     );
   };
 

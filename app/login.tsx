@@ -93,7 +93,6 @@ export default function LoginScreen() {
               style={styles.logo}
               resizeMode="contain"
             />
-            <ThemedText style={styles.appName}>Cuidado Mais Família</ThemedText>
           </View>
 
           <View style={styles.formContainer}>
@@ -187,12 +186,11 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
   },
   logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 16,
+    width: 140,
+    height: 140,
   },
   appName: {
     fontSize: 24,

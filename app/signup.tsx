@@ -132,15 +132,6 @@ export default function SignupScreen() {
             />
           </TouchableOpacity>
 
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('@/assets/images/logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <ThemedText style={styles.appName}>Cuidado Mais Família</ThemedText>
-          </View>
-
           <View style={styles.formContainer}>
             <ThemedText style={styles.title}>Criar Conta</ThemedText>
             <ThemedText style={styles.subtitle}>
@@ -250,15 +241,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     alignSelf: 'flex-start',
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logo: {
-    width: 80,
-    height: 80,
-    marginBottom: 8,
-  },
   appName: {
     fontSize: 20,
     fontFamily: 'Onest-SemiBold',
@@ -267,6 +249,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     alignSelf: 'center',
+    marginVertical: "auto",
   },
   title: {
     fontSize: 28,
